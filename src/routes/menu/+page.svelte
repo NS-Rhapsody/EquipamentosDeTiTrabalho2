@@ -14,6 +14,7 @@
     let price = ''
     let amountToChose = false
     let amount = 1
+    let mode = 1
 
     authStore.subscribe(curr => {
         productList = curr.data.cart
@@ -36,6 +37,7 @@
         } catch (err) {
             console.error('Erro ao adicionar produto:', err);
         }
+        location.reload();
     }
 
     async function saveCart(product) {
@@ -67,11 +69,16 @@
     <div class="headerContainer">
         <h1>Menu principal</h1>
         <div class="headerBtns">
-            <button on:click={() => window.location.href = "/cart"}><i class="fa-solid fa-cart-shopping"></i>Checar carrinho</button>
+            <button on:click={() => window.location.href = "/cart"}><i class="fa-solid fa-cart-shopping"></i>Carrinho</button>
             <button on:click={authHandlers.logout}><i class="fa-solid fa-right-from-bracket"></i>Logout</button>
+            {#if mode} 
+                <button on:click={() => mode = 0}><i class="fa-solid fa-plus"></i>Adicionar produto</button>
+            {:else}
+                <button on:click={() => mode = 1}><i class="fa-solid fa-arrow-left"></i>Menu</button>
+            {/if}
         </div>
     </div>
-    
+    {#if mode}
     {#each dados as dado, index}
         <div class="listProduct">
             <div class="product">
@@ -84,26 +91,31 @@
             </div>
         </div>
     {/each}
+    {:else}
+    <h2>Escreva as informações do produto a serem adicionadas</h2>
     <form action="">
         <input type="text" bind:value={name} required placeholder="Nome do produto">
         <input type="text" bind:value={description} requided placeholder="Descrição do produto">
-        <input type="text" bind:value={price} required placeholder="Preço do produto">
+        <input type="number" bind:value={price} required placeholder="Preço do produto">
         <button on:click={() => addProductToMenu(name, description, price)}>Adicionar produto a loja</button>
     </form>
+    {/if}
 </div>
 {#if amountToChose}
         <div class="pop-up-quantity">
             <div class="pop-up">
-                <p>Selecione a quantidade do produto que você deseja adicionar</p>
+                <h2>Selecione a quantidade do produto que você deseja adicionar</h2>
                 <div>
-                    <p>{productToAdd.nome}, {productToAdd.descricao}, {productToAdd.preco}</p>
+                    <p>{productToAdd.nome}</p>
+                    <p>{productToAdd.descricao}</p>
+                    <p>R$ {productToAdd.preco}</p>
                 </div>
                 <div class="amount">
                     <i class="fa-solid fa-minus" aria-hidden="true" on:click={() => amount = Math.max(1, amount - 1)}></i>
                     <p>{amount}</p>
                     <i class="fa-solid fa-plus" aria-hidden="true" on:click={() => amount++}></i>
                 </div>
-                <button class="btn-confirm" on:click={() => saveCart(productToAdd)}>Confirmar</button>
+                <button on:click={() => saveCart(productToAdd)}>Confirmar</button>
             </div>
         </div>
     {/if}
@@ -137,6 +149,10 @@
         gap: 14px;
     }
 
+    .product {
+        max-width: 80%;
+    }
+
     button {
         background: #003c5b;
         color: white;
@@ -149,7 +165,7 @@
         gap: 10px;
     }
 
-    button:hover {
+    button:hover, .amount i:hover {
         opacity: 0.7;
     }
 
@@ -179,13 +195,23 @@
         align-items: center;
     }
 
+    .amount i {
+        padding: 10px;
+        background: #003c5b;
+        border-radius: 50%;
+    }
+
+    .amount p {
+        padding: 0 10px;
+    }
+ 
     .pop-up-quantity {
         display: flex;
         justify-content: center;
         align-items: center;
         position: absolute;
         top: 0;
-        width: 100vw;
+        width: 100%;
         height: 100vh;
         background-color: rgba(0, 0, 0, 0.6);
     }

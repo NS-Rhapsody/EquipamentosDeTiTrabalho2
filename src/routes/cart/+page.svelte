@@ -53,7 +53,7 @@
         <h1>Carrinho de compras</h1>
         <div class="headerBtns">
             <button on:click={authHandlers.logout}><i class="fa-solid fa-right-from-bracket"></i>Logout</button>
-            <button on:click={() => window.location.href = "/menu"}><i class="fa fa-arrow-left" aria-hidden="true"></i>Menu</button>
+            <button on:click={() => window.location.href = "/menu"}><i class="fa-solid fa-arrow-left" aria-hidden="true"></i>Menu</button>
         </div>
     </div>
     <main>
@@ -64,7 +64,7 @@
         {/if}
         {#each cartList as todo, index}
             <div class="todo">
-                <p>{index + 1}. {todo.nome}, {todo.descricao}, {todo.preco}, {todo.quantidade}</p>
+                <p>{todo.nome}, {todo.descricao}, R$ {todo.preco}, Quantidade: {todo.quantidade}</p>
                 <button on:click={() => removeCart(todo)}>Remover do carrinho</button>
             </div>
         {/each}
