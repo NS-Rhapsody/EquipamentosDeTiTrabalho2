@@ -1,92 +1,147 @@
 <script>
-    import {onMount} from 'svelte'
+    import { onMount } from 'svelte';
     import Footer from '../../components/Footer.svelte';
-    import { auth, db, storage} from '../../lib/firebase/firebase'
+    import { auth, db, storage } from '../../lib/firebase/firebase';
     import { authHandlers, authStore } from "../../store/store";
     import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-    import { getDoc, doc, setDoc, getDocs, collection, addDoc } from 'firebase/firestore'
+    import { getDocs, doc, collection, addDoc, updateDoc } from 'firebase/firestore';
 
     let dados = [];
-    let productList = []
-    let productToAdd = []
-
-    let name = ''
-    let description = ''
-    let price = ''
-    let amountToChose = false
-    let amount = 1
-    let mode = 1
-
+    let productList = [];
+    let productToAdd = [];
+    let filterStyle = '';
+    let name = '';
+    let description = '';
+    let price = '';
+    let amountToChose = false;
+    let amount = 1;
+    let mode = 1;
     let imageFile = null;
+    let currentPage = 1;
+    const productsPerPage = 20;
+    let maxPage;
+    let isEditing = false;
+    let productToEdit = null; 
+    let currentPageProducts = []; // Variável para armazenar os produtos da página atual
 
     function handleFileSelect(event) {
-        imageFile = event.target.files[0]; // Captura o arquivo selecionado
+        imageFile = event.target.files[0];
     }
 
     authStore.subscribe(curr => {
-        productList = curr.data.cart
-    })
+        productList = curr.data?.cart || [];
+    });
 
     onMount(async () => {
-        const querySnapshot = await getDocs(collection(db, 'products'));
-        dados = querySnapshot.docs.map(doc => doc.data());
+        try {
+            const querySnapshot = await getDocs(collection(db, 'products'));
+            dados = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+            dados = [...dados];
+            maxPage = Math.ceil(dados.length / productsPerPage);
+            getCurrentPageProducts(); // Chama a função para carregar os produtos da primeira página
+        } catch (error) {
+            console.error("Erro ao carregar produtos:", error);
+        }
     });
 
     async function addProductToMenu(name, description, price) {
-        if (!imageFile) {
-        alert("Selecione uma imagem para o produto.");
-        return;
-    }
-    try {
-        const storageRef = ref(storage, `products/${imageFile.name}`);
+        if (!imageFile && !isEditing) {
+            alert("Selecione uma imagem para o produto.");
+            return;
+        }
 
-        const snapshot = await uploadBytes(storageRef, imageFile);
+        try {
+            let imageUrl = productToEdit?.imagemUrl || '';
+            if (imageFile) {
+                const storageRef = ref(storage, `products/${imageFile.name}`);
+                const snapshot = await uploadBytes(storageRef, imageFile);
+                imageUrl = await getDownloadURL(snapshot.ref);
+            }
 
-        const imageUrl = await getDownloadURL(snapshot.ref);
-        console.log(name, description, price)
-        console.log(imageUrl)
-        const dataToSetToStore = {
-            nome: name,
-            descricao: description,
-            preco: price,
-            imagemUrl: imageUrl  
-        };
+            const dataToSetToStore = {
+                nome: name,
+                descricao: description,
+                preco: price,
+                imagemUrl: imageUrl  
+            };
 
-        await addDoc(collection(db, 'products'), dataToSetToStore);
+            if (isEditing && productToEdit) {
+                const productRef = doc(db, 'products', productToEdit.id);
+                await updateDoc(productRef, dataToSetToStore);
+                isEditing = false;
+                productToEdit = null;
+            } else {
+                await addDoc(collection(db, 'products'), dataToSetToStore);
+            }
 
-        console.log('Produto adicionado com sucesso!');
-        location.reload();
-    } catch (error) {
-        console.error('Erro ao adicionar o produto:', error);
+            location.reload();
+        } catch (error) {
+            console.error('Erro ao adicionar/editar o produto:', error);
         }
     }
 
-    async function saveCart(product) {
-    const productObj = {
-        nome: product.nome,
-        descricao: product.descricao,
-        preco: product.preco,
-        quantidade: amount
-    };
-    productList = [...productList, productObj];
-    try {
-        const userRef = doc(db, 'users', $authStore.user.uid)
-        await setDoc(userRef, { cart: productList }, { merge: true })
-    } catch (err) {
-        console.log("There was an error saving your information: " + err)
+    function startEdit(product) {
+        isEditing = true;
+        productToEdit = product;
+        name = product.nome;
+        description = product.descricao;
+        price = product.preco;
+        mode = 0;
     }
 
-    productToAdd = [];
-    amount = 1;
-    amountToChose = false;
-}
+    async function saveCart(product) {
+        const productObj = {
+            nome: product.nome,
+            descricao: product.descricao,
+            preco: product.preco,
+            quantidade: amount
+        };
+        productList = [...productList, productObj];
+
+        try {
+            const userRef = doc(db, 'users', $authStore.user.uid);
+            await setDoc(userRef, { cart: productList }, { merge: true });
+        } catch (err) {
+            console.log("Erro ao salvar informações no carrinho:", err);
+        }
+
+        productToAdd = [];
+        amount = 1;
+        amountToChose = false;
+    }
 
     function choseAmount(index) {
-        productToAdd = index
-        amountToChose = true
+        productToAdd = index;
+        amountToChose = true;
     }
 
+    function handleFilter() {
+        if (filterStyle === "Alfabetico") {
+            dados = [...dados].sort((a, b) => a.nome.localeCompare(b.nome, 'pt', { sensitivity: 'base' }));
+        } else if (filterStyle === "Menor preço") {
+            dados = [...dados].sort((a, b) => a.preco - b.preco);
+        } else if (filterStyle === "Maior preço") {
+            dados = [...dados].sort((a, b) => b.preco - a.preco);
+        }
+        maxPage = Math.ceil(dados.length / productsPerPage); // Atualiza o número máximo de páginas
+        currentPage = 1; // Reseta para a primeira página ao aplicar um filtro
+        getCurrentPageProducts(); // Atualiza a exibição com o filtro aplicado
+    }
+
+    function changePage(newPage) {
+        if (newPage > 0 && newPage <= maxPage) {
+            currentPage = newPage;
+            getCurrentPageProducts(); // Atualiza os produtos na página atual
+        }
+    }
+
+    function getCurrentPageProducts() {
+        const startIndex = (currentPage - 1) * productsPerPage;
+        const endIndex = startIndex + productsPerPage;
+        currentPageProducts = dados.slice(startIndex, endIndex); // Atualiza a lista de produtos da página atual
+    }
 </script>
+
 <div class="mainContainer">
     <div class="headerContainer">
         <h1>Menu principal</h1>
@@ -98,54 +153,74 @@
             {:else}
                 <button on:click={() => mode = 1}><i class="fa-solid fa-arrow-left"></i>Menu</button>
             {/if}
+            <select bind:value={filterStyle} on:change={handleFilter}>
+                <option value="" disabled selected>Filtro</option>
+                <option value="Alfabetico">Alfabetico</option>
+                <option value="Menor preço">Menor preço</option>
+                <option value="Maior preço">Maior preço</option>
+            </select>
         </div>
     </div>
+
     {#if mode}
-    {#each dados as dado, index}
-        <div class="listProduct">
-            <div class="product">
-                <h2>{dados[index].nome}</h2>
-                <p>{dados[index].descricao}</p>
-            {#if dado.imagemUrl}
-                <img src={dado.imagemUrl} alt="{dado.nome}" width="100">
-            {/if}
+    <div class="listProductsContainer">
+        {#each currentPageProducts as dado, index}
+            <div class="listProduct" key={index}>
+                <div class="product">
+                    <h2>{dado.nome}</h2>
+                    <p>{dado.descricao}</p>
+                    {#if dado.imagemUrl}
+                        <img src={dado.imagemUrl} alt="{dado.nome}">
+                    {/if}
+                </div>
+                <div class="economics">
+                    <p>{dado.preco} R$</p>
+                    <button on:click={() => choseAmount(dado)}>Adicionar ao carrinho</button>
+                    <button on:click={() => startEdit(dado)}>Editar</button> <!-- Botão de Editar -->
+                </div>
             </div>
-            <div class="economics">
-                <p>{dados[index].preco} R$</p>
-                <button on:click={() => choseAmount(dados[index])}>Adicionar ao carrinho</button>
-            </div>
-        </div>
-    {/each}
+        {/each}
+    </div>
+
+    <div class="pagination">
+        <button on:click={() => changePage(currentPage - 1)} disabled={currentPage === 1}>Anterior</button>
+        <span>Página {currentPage} de {maxPage}</span>
+        <button on:click={() => changePage(currentPage + 1)} disabled={currentPage === maxPage}>Próximo</button>
+    </div>
+
     {:else}
-    <h2>Escreva as informações do produto a serem adicionadas</h2>
+    <h2>{isEditing ? 'Editar produto' : 'Adicionar produto'}</h2> <!-- Mudança no título -->
     <form>
         <input type="text" bind:value={name} required placeholder="Nome do produto">
         <input type="text" bind:value={description} required placeholder="Descrição do produto">
         <input type="number" bind:value={price} required placeholder="Preço do produto">
-        <input type="file" accept="image/*" on:change={handleFileSelect} required>
-        <button type="button" on:click={() => addProductToMenu(name, description, price)}>Adicionar produto a loja</button>
+        <input type="file" accept="image/*" on:change={handleFileSelect} required={!isEditing}> <!-- Não requer imagem ao editar -->
+        <button type="button" on:click={() => addProductToMenu(name, description, price)}>
+            {isEditing ? 'Salvar alterações' : 'Adicionar produto'}
+        </button>
     </form>
     {/if}
 </div>
+
 {#if amountToChose}
-        <div class="pop-up-quantity">
-            <div class="pop-up">
-                <h2>Selecione a quantidade do produto que você deseja adicionar</h2>
-                <div>
-                    <p>{productToAdd.nome}</p>
-                    <p>{productToAdd.descricao}</p>
-                    <p>R$ {productToAdd.preco}</p>
-                </div>
-                <div class="amount">
-                    <i class="fa-solid fa-minus" aria-hidden="true" on:click={() => amount = Math.max(1, amount - 1)}></i>
-                    <p>{amount}</p>
-                    <i class="fa-solid fa-plus" aria-hidden="true" on:click={() => amount++}></i>
-                </div>
-                <button on:click={() => saveCart(productToAdd)}>Confirmar</button>
+    <div class="pop-up-quantity">
+        <div class="pop-up">
+            <h2>Selecione a quantidade do produto que você deseja adicionar</h2>
+            <div>
+                <p>{productToAdd.nome}</p>
+                <p>{productToAdd.descricao}</p>
+                <p>R$ {productToAdd.preco}</p>
             </div>
+            <div class="amount">
+                <i class="fa-solid fa-minus" aria-hidden="true" on:click={() => amount = Math.max(1, amount - 1)}></i>
+                <p>{amount}</p>
+                <i class="fa-solid fa-plus" aria-hidden="true" on:click={() => amount++}></i>
+            </div>
+            <button on:click={() => saveCart(productToAdd)}>Confirmar</button>
         </div>
-    {/if}
-    <Footer/>
+    </div>
+{/if}
+<Footer/>
 <style>
     .mainContainer {
         display: flex;
@@ -158,35 +233,56 @@
         margin: 0 auto;
     }
 
-    .headerContainer, .listProduct {
+    .headerContainer {
         display: flex;
         align-items: center;
         justify-content: space-between;
     }
 
-    .listProduct {
-        padding-bottom: 20px;
-        border-bottom: cyan 1px solid;
-    }
-
     .headerBtns {
         display: flex;
         align-items: center;
-        gap: 14px;
+        gap: 14px; 
+    }
+
+    .listProduct {
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+        border: 1px solid cyan;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .listProductsContainer {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        width: 100%;
     }
 
     .product {
         max-width: 80%;
+        display: flex;
+        flex-direction: column;
+        margin: 0 auto;
     }
 
-    button {
+    .product img {
+        max-width: 100px;
+        max-height: 100px;
+        object-fit: cover;
+        border-radius: 4px;
+        margin: 0 auto;
+    }
+
+    button, select {
         background: #003c5b;
         color: white;
         padding: 10px 18px;
         border: none;
         border-radius: 4px;
         font-weight: 700;
-        display: flex;
         align-items: center;
         gap: 10px;
     }
@@ -197,6 +293,7 @@
 
     button i {
         font-size: 1.1rem;
+        padding-right: 10px;
     }
 
     form {
@@ -230,7 +327,7 @@
     .amount p {
         padding: 0 10px;
     }
- 
+
     .pop-up-quantity {
         display: flex;
         justify-content: center;
@@ -259,5 +356,18 @@
         max-height: 100px;
         object-fit: cover;
         border-radius: 4px;
+        border: 4px solid cyan;
+    }
+
+    @media (max-width: 1024px) {
+        .listProductsContainer {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .listProductsContainer {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
