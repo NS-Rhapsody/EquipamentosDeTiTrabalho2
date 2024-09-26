@@ -296,7 +296,6 @@
     }
 
     .headerContainer {
-        margin-top: 10px;
         margin-bottom: 10px;
         display: flex;
         align-items: center;
@@ -305,7 +304,7 @@
         margin-left: calc(
             -50vw + 50%
         ); /* Compensa o margin do body para alinhar corretamente */
-        padding: 0 24px; /* Adiciona o padding lateral, se necessário */
+        padding: 10px 24px; /* Adiciona o padding lateral, se necessário */
         box-sizing: border-box; /* Garante que o padding não afete a largura total */
         background-color: #000425;
     }
@@ -332,13 +331,12 @@
         grid-template-columns: repeat(3, 1fr);
         gap: 20px;
         width: 100%;
+        height: 100%;
+        margin: 20px;
     }
 
-    .product {
-        max-width: 80%;
-        display: flex;
-        flex-direction: column;
-        margin: 0 auto;
+    .pagination{
+        margin-bottom: 20px;
     }
 
     .product img {
@@ -346,12 +344,15 @@
         max-height: 100px;
         object-fit: cover;
         border-radius: 4px;
-        margin: 0 auto;
+        margin-bottom: 0 auto;
+        margin-left: 20%;
     }
     .product {
         max-width: 80%;
+        height: 90%;
         display: flex;
         flex-direction: column;
+        align-content: center;
         margin: 0 auto;
         gap: 10px; /* Define o espaçamento entre os itens internos do div */
         padding: 20px; /* Adiciona padding interno ao redor do conteúdo */
@@ -363,6 +364,11 @@
         font-family: "PT sans";
         font-weight: 800;
     }
+
+    .economics p{
+        margin-bottom:10px;
+    }
+
     button,
     select {
         background: #00084d;
