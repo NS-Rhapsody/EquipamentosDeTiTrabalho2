@@ -1,42 +1,48 @@
 <script>
     import { authHandlers } from "../store/store";
-
-    let email = ""
-    let password = ""
-    let confirmPass = ""
-    let error = false
-    let register = false
-    let authenticating = false
+    let email = "";
+    let password = "";
+    let confirmPass = "";
+    let error = false;
+    let register = false;
+    let authenticating = false;
 
     async function handleAuthenticate() {
         if (authenticating) {
             return;
         }
         if (!email || !password || (register && !confirmPass)) {
-            error = true
+            error = true;
             return;
         }
-        authenticating = true
+        authenticating = true;
         try {
             if (!register) {
-            await authHandlers.login(email, password)
-        } else {
-            await authHandlers.signup(email, password)
-        }
+                await authHandlers.login(email, password);
+            } else {
+                await authHandlers.signup(email, password);
+            }
         } catch (err) {
-            console.log("There was an auth error", err)
-            authenticating = false
-            error = true
+            console.log("There was an auth error", err);
+            authenticating = false;
+            error = true;
         }
     }
     function handleRegister() {
-        register = !register
+        register = !register;
     }
 </script>
 
 <div class="authContainer">
+    <img
+        src="Flaviotec w.svg"
+        alt="Logo tipo feito pelo Ivan a pedido do Flavio"
+    />
     <form>
         <h1>{register ? "Registrar" : "Login"}</h1>
+        <p class="legenda">
+            {register ? "Crie sua conta" : "Acesse nossa loja"}
+        </p>
         {#if error}
             <p class="error">A informação que você inseriu está incorreta</p>
         {/if}
@@ -49,10 +55,14 @@
             <input bind:value={password} type="password" placeholder="Senha" />
         </label>
         {#if register}
-        <label>
-            <p class={confirmPass ? "above" : "center"}>Confirmar Senha</p>
-            <input bind:value={confirmPass} type="password" placeholder="Confirmar Senha" />
-        </label>
+            <label>
+                <p class={confirmPass ? "above" : "center"}>Confirmar Senha</p>
+                <input
+                    bind:value={confirmPass}
+                    type="password"
+                    placeholder="Confirmar Senha"
+                />
+            </label>
         {/if}
         <button type="button" on:click={handleAuthenticate} class="submitBtn">
             {#if authenticating}
@@ -60,7 +70,7 @@
             {:else}
                 Enviar
             {/if}
-            </button>
+        </button>
     </form>
     <div class="options">
         <p>Ou</p>
@@ -71,8 +81,8 @@
             </div>
         {:else}
             <div>
-              <p>Não tem uma conta?</p>
-              <p on:click={handleRegister} on:keydown={() => {}}>Registrar</p>
+                <p>Não tem uma conta?</p>
+                <p on:click={handleRegister} on:keydown={() => {}}>Registrar</p>
             </div>
         {/if}
     </div>
@@ -86,15 +96,20 @@
         justify-content: center;
         flex: 1;
         padding: 24px;
+        background: linear-gradient(20deg, rgb(0, 0, 73), rgb(13, 54, 167));
     }
-
+    .authContainer img {
+        fill: white;
+        width: 90px;
+    }
     form {
         display: flex;
         flex-direction: column;
         gap: 14px;
     }
 
-    form, .options {
+    form,
+    .options {
         width: 400px;
         max-width: 100%;
         margin: 0 auto;
@@ -102,7 +117,7 @@
 
     form label {
         position: relative;
-        border: 1px solid navy;
+        border: 1px solid rgb(132, 132, 255);
         border-radius: 5px;
     }
 
@@ -120,16 +135,22 @@
     }
 
     form label:focus-within {
-        border-color: blue;
+        border-color: rgb(255, 255, 255);
     }
 
     h1 {
+        font-family: "PT Sans", sans-serif;
         text-align: center;
-        font-size: 3rem;    
+        font-size: 3rem;
+    }
+    .legenda {
+        text-align: center;
+        font-family: "Raleway", sans-serif;
     }
 
     form button {
-        background: navy;
+        font-family: "Railway" sans-serif;
+        background: rgb(25, 25, 211);
         color: white;
         border: none;
         padding: 14px 0;
@@ -141,10 +162,12 @@
     }
 
     form button:hover {
-        background: blue;
+        background: rgb(255, 255, 255);
+        color: black;
     }
 
-    .above, .center {
+    .above,
+    .center {
         position: absolute;
         transform: translateY(-50%);
         pointer-events: none;
@@ -192,7 +215,8 @@
         padding: 0 8px;
     }
 
-    .options > p::after, .options > p::before {
+    .options > p::after,
+    .options > p::before {
         position: absolute;
         content: "";
         top: 50%;

@@ -1,17 +1,23 @@
 <script>
-    import {onMount} from 'svelte'
-    import {auth, db} from '../lib/firebase/firebase'
-    import { getDoc, doc, setDoc, getDocs, collection } from 'firebase/firestore'
-    import { authStore } from '../store/store'
+    import { onMount } from "svelte";
+    import { auth, db } from "../lib/firebase/firebase";
+    import {
+        getDoc,
+        doc,
+        setDoc,
+        getDocs,
+        collection,
+    } from "firebase/firestore";
+    import { authStore } from "../store/store";
 
-    const nonAuthRoutes = ['/', "product"]
+    const nonAuthRoutes = ["/", "product"];
 
     onMount(() => {
-        const unsubscribe = auth.onAuthStateChanged(async user => {
-            const currentPath = window.location.pathname
+        const unsubscribe = auth.onAuthStateChanged(async (user) => {
+            const currentPath = window.location.pathname;
             if (!user && !nonAuthRoutes.includes(currentPath)) {
-                window.location.href = '/'
-                return
+                window.location.href = "/";
+                return;
             }
 
             if (user && currentPath === "/") {
@@ -23,35 +29,35 @@
                 return;
             }
 
-            let dataToSetToStore
-            const docRef = doc(db, "users", user.uid)
-            const docSnap = await getDoc(docRef)
+            let dataToSetToStore;
+            const docRef = doc(db, "users", user.uid);
+            const docSnap = await getDoc(docRef);
 
             if (!docSnap.exists()) {
-                const userRef = doc(db, "users", user.uid)
+                const userRef = doc(db, "users", user.uid);
                 dataToSetToStore = {
-                    email: user.email, 
+                    email: user.email,
                     cart: [],
-                }
-                await setDoc(userRef, dataToSetToStore, { merge: true})
+                };
+                await setDoc(userRef, dataToSetToStore, { merge: true });
             } else {
-                const userData = docSnap.data()
-                dataToSetToStore = userData
+                const userData = docSnap.data();
+                dataToSetToStore = userData;
             }
-            authStore.update((curr) => {    
+            authStore.update((curr) => {
                 return {
                     ...curr,
                     user,
                     data: dataToSetToStore,
-                    loading: false
-                }
-            })
-        })
-    })
+                    loading: false,
+                };
+            });
+        });
+    });
 </script>
 
 <div class="mainContainer">
-    <slot/>
+    <slot />
 </div>
 
 <style>

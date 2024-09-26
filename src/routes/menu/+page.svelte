@@ -179,6 +179,7 @@
                 <option value="Maior preço">Maior preço</option>
             </select>
         </div>
+        <img src="Flaviotec w.svg" alt="" />
     </div>
 
     {#if mode}
@@ -283,24 +284,34 @@
 <Footer />
 
 <style>
-    /* */
     .mainContainer {
         display: flex;
         flex-direction: column;
         min-height: 100vh;
         gap: 24px;
-        padding: 24px;
+        padding: 0 24px; /* Mantém o padding apenas nas laterais para o conteúdo */
         width: 100%;
         max-width: 1000px;
         margin: 0 auto;
     }
 
     .headerContainer {
+        margin-top: 10px;
+        margin-bottom: 10px;
         display: flex;
         align-items: center;
         justify-content: space-between;
+        width: 100vw; /* Alarga o header para a largura completa da viewport */
+        margin-left: calc(
+            -50vw + 50%
+        ); /* Compensa o margin do body para alinhar corretamente */
+        padding: 0 24px; /* Adiciona o padding lateral, se necessário */
+        box-sizing: border-box; /* Garante que o padding não afete a largura total */
+        background-color: #000425;
     }
-
+    .headerContainer img {
+        width: 60px;
+    }
     .headerBtns {
         display: flex;
         align-items: center;
@@ -311,9 +322,9 @@
         display: flex;
         flex-direction: column;
         padding: 20px;
-        border: 1px solid cyan;
         border-radius: 8px;
         text-align: center;
+        background-color: rgb(18, 18, 102);
     }
 
     .listProductsContainer {
@@ -337,22 +348,35 @@
         border-radius: 4px;
         margin: 0 auto;
     }
-
+    .product {
+        max-width: 80%;
+        display: flex;
+        flex-direction: column;
+        margin: 0 auto;
+        gap: 10px; /* Define o espaçamento entre os itens internos do div */
+        padding: 20px; /* Adiciona padding interno ao redor do conteúdo */
+    }
+    .product p {
+        font-family: "Raleway";
+    }
+    .economics {
+        font-family: "PT sans";
+        font-weight: 800;
+    }
     button,
     select {
-        background: #003c5b;
+        background: #00084d;
         color: white;
         padding: 10px 18px;
         border: none;
-        border-radius: 4px;
+        border-radius: 20px;
         font-weight: 700;
         align-items: center;
         gap: 10px;
     }
-
     button:hover,
     .amount i:hover {
-        opacity: 0.7;
+        background-color: #005e8d;
     }
 
     button i {
@@ -420,7 +444,6 @@
         max-height: 100px;
         object-fit: cover;
         border-radius: 4px;
-        border: 4px solid cyan;
     }
 
     @media (max-width: 1024px) {
