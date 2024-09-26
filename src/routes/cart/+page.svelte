@@ -13,6 +13,7 @@
     authStore.subscribe(curr => {
         cartList = curr.data.cart;
         userId = curr.user ? curr.user.uid : null;
+        console.log(curr)
     });
 
     onMount(async () => {
@@ -22,6 +23,7 @@
                 const docSnap = await getDoc(userRef);
                 if (docSnap.exists()) {
                     cartList = docSnap.data().cart;
+                    console.log(cartList)
                 } else {
                     console.log("No such document!");
                 }
@@ -44,7 +46,6 @@
             console.log("There was an error saving your information" + err)
         }
     }
-    console.log(cartList)
 </script>
 
 {#if !$authStore.loading}

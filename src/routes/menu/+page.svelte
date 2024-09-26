@@ -5,6 +5,7 @@
     import { authHandlers, authStore } from "../../store/store";
     import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
     import {
+        setDoc,
         getDocs,
         doc,
         collection,
@@ -35,6 +36,7 @@
     }
 
     authStore.subscribe((curr) => {
+        console.log(curr)
         productList = curr.data?.cart || [];
     });
 
@@ -95,6 +97,7 @@
         name = product.nome;
         description = product.descricao;
         price = product.preco;
+        imageFile = product.imagemUrl
         mode = 0;
     }
 
@@ -103,6 +106,7 @@
             nome: product.nome,
             descricao: product.descricao,
             preco: product.preco,
+            image: product.imagemUrl,
             quantidade: amount,
         };
         productList = [...productList, productObj];
