@@ -1,18 +1,24 @@
 <script>
-    import { onMount } from 'svelte';
-    import Footer from '../../components/Footer.svelte';
-    import { auth, db, storage } from '../../lib/firebase/firebase';
+    import { onMount } from "svelte";
+    import Footer from "../../components/Footer.svelte";
+    import { auth, db, storage } from "../../lib/firebase/firebase";
     import { authHandlers, authStore } from "../../store/store";
     import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-    import { getDocs, doc, collection, addDoc, updateDoc } from 'firebase/firestore';
+    import {
+        getDocs,
+        doc,
+        collection,
+        addDoc,
+        updateDoc,
+    } from "firebase/firestore";
 
     let dados = [];
     let productList = [];
     let productToAdd = [];
-    let filterStyle = '';
-    let name = '';
-    let description = '';
-    let price = '';
+    let filterStyle = "";
+    let name = "";
+    let description = "";
+    let price = "";
     let amountToChose = false;
     let amount = 1;
     let mode = 1;
@@ -21,21 +27,24 @@
     const productsPerPage = 20;
     let maxPage;
     let isEditing = false;
-    let productToEdit = null; 
+    let productToEdit = null;
     let currentPageProducts = []; // Variável para armazenar os produtos da página atual
 
     function handleFileSelect(event) {
         imageFile = event.target.files[0];
     }
 
-    authStore.subscribe(curr => {
+    authStore.subscribe((curr) => {
         productList = curr.data?.cart || [];
     });
 
     onMount(async () => {
         try {
-            const querySnapshot = await getDocs(collection(db, 'products'));
-            dados = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+            const querySnapshot = await getDocs(collection(db, "products"));
+            dados = querySnapshot.docs.map((doc) => ({
+                ...doc.data(),
+                id: doc.id,
+            }));
             dados = [...dados];
             maxPage = Math.ceil(dados.length / productsPerPage);
             getCurrentPageProducts(); // Chama a função para carregar os produtos da primeira página
@@ -51,7 +60,7 @@
         }
 
         try {
-            let imageUrl = productToEdit?.imagemUrl || '';
+            let imageUrl = productToEdit?.imagemUrl || "";
             if (imageFile) {
                 const storageRef = ref(storage, `products/${imageFile.name}`);
                 const snapshot = await uploadBytes(storageRef, imageFile);
@@ -62,21 +71,21 @@
                 nome: name,
                 descricao: description,
                 preco: price,
-                imagemUrl: imageUrl  
+                imagemUrl: imageUrl,
             };
 
             if (isEditing && productToEdit) {
-                const productRef = doc(db, 'products', productToEdit.id);
+                const productRef = doc(db, "products", productToEdit.id);
                 await updateDoc(productRef, dataToSetToStore);
                 isEditing = false;
                 productToEdit = null;
             } else {
-                await addDoc(collection(db, 'products'), dataToSetToStore);
+                await addDoc(collection(db, "products"), dataToSetToStore);
             }
 
             location.reload();
         } catch (error) {
-            console.error('Erro ao adicionar/editar o produto:', error);
+            console.error("Erro ao adicionar/editar o produto:", error);
         }
     }
 
@@ -94,12 +103,12 @@
             nome: product.nome,
             descricao: product.descricao,
             preco: product.preco,
-            quantidade: amount
+            quantidade: amount,
         };
         productList = [...productList, productObj];
 
         try {
-            const userRef = doc(db, 'users', $authStore.user.uid);
+            const userRef = doc(db, "users", $authStore.user.uid);
             await setDoc(userRef, { cart: productList }, { merge: true });
         } catch (err) {
             console.log("Erro ao salvar informações no carrinho:", err);
@@ -117,7 +126,9 @@
 
     function handleFilter() {
         if (filterStyle === "Alfabetico") {
-            dados = [...dados].sort((a, b) => a.nome.localeCompare(b.nome, 'pt', { sensitivity: 'base' }));
+            dados = [...dados].sort((a, b) =>
+                a.nome.localeCompare(b.nome, "pt", { sensitivity: "base" }),
+            );
         } else if (filterStyle === "Menor preço") {
             dados = [...dados].sort((a, b) => a.preco - b.preco);
         } else if (filterStyle === "Maior preço") {
@@ -146,12 +157,20 @@
     <div class="headerContainer">
         <h1>Menu principal</h1>
         <div class="headerBtns">
-            <button on:click={() => window.location.href = "/cart"}><i class="fa-solid fa-cart-shopping"></i>Carrinho</button>
-            <button on:click={authHandlers.logout}><i class="fa-solid fa-right-from-bracket"></i>Logout</button>
-            {#if mode} 
-                <button on:click={() => mode = 0}><i class="fa-solid fa-plus"></i>Adicionar produto</button>
+            <button on:click={() => (window.location.href = "/cart")}
+                ><i class="fa-solid fa-cart-shopping"></i>Carrinho</button
+            >
+            <button on:click={authHandlers.logout}
+                ><i class="fa-solid fa-right-from-bracket"></i>Logout</button
+            >
+            {#if mode}
+                <button on:click={() => (mode = 0)}
+                    ><i class="fa-solid fa-plus"></i>Adicionar produto</button
+                >
             {:else}
-                <button on:click={() => mode = 1}><i class="fa-solid fa-arrow-left"></i>Menu</button>
+                <button on:click={() => (mode = 1)}
+                    ><i class="fa-solid fa-arrow-left"></i>Menu</button
+                >
             {/if}
             <select bind:value={filterStyle} on:change={handleFilter}>
                 <option value="" disabled selected>Filtro</option>
@@ -163,42 +182,75 @@
     </div>
 
     {#if mode}
-    <div class="listProductsContainer">
-        {#each currentPageProducts as dado, index}
-            <div class="listProduct" key={index}>
-                <div class="product">
-                    <h2>{dado.nome}</h2>
-                    <p>{dado.descricao}</p>
-                    {#if dado.imagemUrl}
-                        <img src={dado.imagemUrl} alt="{dado.nome}">
-                    {/if}
+        <div class="listProductsContainer">
+            {#each currentPageProducts as dado, index}
+                <div class="listProduct" key={index}>
+                    <div class="product">
+                        <h2>{dado.nome}</h2>
+                        <p>{dado.descricao}</p>
+                        {#if dado.imagemUrl}
+                            <img src={dado.imagemUrl} alt={dado.nome} />
+                        {/if}
+                    </div>
+                    <div class="economics">
+                        <p>{dado.preco} R$</p>
+                        <button on:click={() => choseAmount(dado)}
+                            >Adicionar ao carrinho</button
+                        >
+                        <button on:click={() => startEdit(dado)}>Editar</button>
+                        <!-- Botão de Editar -->
+                    </div>
                 </div>
-                <div class="economics">
-                    <p>{dado.preco} R$</p>
-                    <button on:click={() => choseAmount(dado)}>Adicionar ao carrinho</button>
-                    <button on:click={() => startEdit(dado)}>Editar</button> <!-- Botão de Editar -->
-                </div>
-            </div>
-        {/each}
-    </div>
+            {/each}
+        </div>
 
-    <div class="pagination">
-        <button on:click={() => changePage(currentPage - 1)} disabled={currentPage === 1}>Anterior</button>
-        <span>Página {currentPage} de {maxPage}</span>
-        <button on:click={() => changePage(currentPage + 1)} disabled={currentPage === maxPage}>Próximo</button>
-    </div>
-
+        <div class="pagination">
+            <button
+                on:click={() => changePage(currentPage - 1)}
+                disabled={currentPage === 1}>Anterior</button
+            >
+            <span>Página {currentPage} de {maxPage}</span>
+            <button
+                on:click={() => changePage(currentPage + 1)}
+                disabled={currentPage === maxPage}>Próximo</button
+            >
+        </div>
     {:else}
-    <h2>{isEditing ? 'Editar produto' : 'Adicionar produto'}</h2> <!-- Mudança no título -->
-    <form>
-        <input type="text" bind:value={name} required placeholder="Nome do produto">
-        <input type="text" bind:value={description} required placeholder="Descrição do produto">
-        <input type="number" bind:value={price} required placeholder="Preço do produto">
-        <input type="file" accept="image/*" on:change={handleFileSelect} required={!isEditing}> <!-- Não requer imagem ao editar -->
-        <button type="button" on:click={() => addProductToMenu(name, description, price)}>
-            {isEditing ? 'Salvar alterações' : 'Adicionar produto'}
-        </button>
-    </form>
+        <h2>{isEditing ? "Editar produto" : "Adicionar produto"}</h2>
+        <!-- Mudança no título -->
+        <form>
+            <input
+                type="text"
+                bind:value={name}
+                required
+                placeholder="Nome do produto"
+            />
+            <input
+                type="text"
+                bind:value={description}
+                required
+                placeholder="Descrição do produto"
+            />
+            <input
+                type="number"
+                bind:value={price}
+                required
+                placeholder="Preço do produto"
+            />
+            <input
+                type="file"
+                accept="image/*"
+                on:change={handleFileSelect}
+                required={!isEditing}
+            />
+            <!-- Não requer imagem ao editar -->
+            <button
+                type="button"
+                on:click={() => addProductToMenu(name, description, price)}
+            >
+                {isEditing ? "Salvar alterações" : "Adicionar produto"}
+            </button>
+        </form>
     {/if}
 </div>
 
@@ -212,16 +264,26 @@
                 <p>R$ {productToAdd.preco}</p>
             </div>
             <div class="amount">
-                <i class="fa-solid fa-minus" aria-hidden="true" on:click={() => amount = Math.max(1, amount - 1)}></i>
+                <i
+                    class="fa-solid fa-minus"
+                    aria-hidden="true"
+                    on:click={() => (amount = Math.max(1, amount - 1))}
+                ></i>
                 <p>{amount}</p>
-                <i class="fa-solid fa-plus" aria-hidden="true" on:click={() => amount++}></i>
+                <i
+                    class="fa-solid fa-plus"
+                    aria-hidden="true"
+                    on:click={() => amount++}
+                ></i>
             </div>
             <button on:click={() => saveCart(productToAdd)}>Confirmar</button>
         </div>
     </div>
 {/if}
-<Footer/>
+<Footer />
+
 <style>
+    /* */
     .mainContainer {
         display: flex;
         flex-direction: column;
@@ -242,7 +304,7 @@
     .headerBtns {
         display: flex;
         align-items: center;
-        gap: 14px; 
+        gap: 14px;
     }
 
     .listProduct {
@@ -276,7 +338,8 @@
         margin: 0 auto;
     }
 
-    button, select {
+    button,
+    select {
         background: #003c5b;
         color: white;
         padding: 10px 18px;
@@ -287,7 +350,8 @@
         gap: 10px;
     }
 
-    button:hover, .amount i:hover {
+    button:hover,
+    .amount i:hover {
         opacity: 0.7;
     }
 
