@@ -344,8 +344,8 @@
     }
 
     .product img {
-        max-width: 100px;
-        max-height: 100px;
+        width: 100px;
+        height: 100px;
         object-fit: cover;
         border-radius: 4px;
         margin-bottom: 0 auto;
