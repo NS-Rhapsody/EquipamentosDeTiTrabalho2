@@ -6,15 +6,25 @@
     import Footer from '../../components/Footer.svelte';
 
     let cartList = [];
-    let totalPrice = 0;
     let error = false;
+    let totalPrice = 0;
     let userId = null;
 
+    // Subscrevendo ao authStore
     authStore.subscribe(curr => {
-        cartList = curr.data.cart;
+        cartList = curr.data ? curr.data.cart || [] : []; 
         userId = curr.user ? curr.user.uid : null;
-        console.log(curr)
+        calculateTotalPrice(); 
     });
+
+    // Função para calcular o preço total
+    function calculateTotalPrice() {
+        if (Array.isArray(cartList)) { 
+            totalPrice = cartList.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
+        } else {
+            totalPrice = 0; 
+        }
+    }
 
     onMount(async () => {
         try {
@@ -22,8 +32,8 @@
                 const userRef = doc(db, 'users', userId);
                 const docSnap = await getDoc(userRef);
                 if (docSnap.exists()) {
-                    cartList = docSnap.data().cart;
-                    console.log(cartList)
+                    cartList = docSnap.data().cart || [];
+                    calculateTotalPrice();
                 } else {
                     console.log("No such document!");
                 }
@@ -34,16 +44,15 @@
         }
     });
 
-    async function removeCart(index) {
-        let newCartList = cartList.filter((val) => {
-            return val.nome !== index.nome
-        })
-        cartList = newCartList
+    async function removeCart(item) {
+        // Filtra o item do carrinho
+        cartList = cartList.filter(val => val.nome !== item.nome);
+        calculateTotalPrice(); // Recalcula o preço total
         try {
-            const userRef = doc(db, 'users', $authStore.user.uid)
-            await setDoc(userRef, { cart: cartList }, { merge: true })
+            const userRef = doc(db, 'users', userId);
+            await setDoc(userRef, { cart: cartList }, { merge: true });
         } catch (err) {
-            console.log("There was an error saving your information" + err)
+            console.log("There was an error saving your information: " + err);
         }
     }
 </script>
@@ -59,14 +68,12 @@
     </div>
     <main>
         {#if cartList.length === 0}
-        <p>
-            Seu carrinho de compras está vazio
-        </p>
+        <p>Seu carrinho de compras está vazio</p>
         {/if}
-        {#each cartList as todo, index}
+        {#each cartList as item, index}
             <div class="todo">
-                <p>{todo.nome}, {todo.descricao}, R$ {todo.preco}, Quantidade: {todo.quantidade}</p>
-                <button on:click={() => removeCart(todo)}>Remover do carrinho</button>
+                <p>{item.nome}, {item.descricao}, R$ {item.preco}, Quantidade: {item.quantidade}</p>
+                <button on:click={() => removeCart(item)}>Remover do carrinho</button>
             </div>
         {/each}
         <button>Realizar Compra: {totalPrice} R$</button>
@@ -74,6 +81,7 @@
 </div>
 <Footer/>
 {/if}
+
 <style>
     .mainContainer {
         display: flex;
