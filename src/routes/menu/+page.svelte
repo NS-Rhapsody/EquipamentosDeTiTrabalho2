@@ -221,6 +221,7 @@
             >
         </div>
     {:else}
+    <div class="edit">
         <h2>{isEditing ? "Editar produto" : "Adicionar produto"}</h2>
         <!-- Mudança no título -->
         <form>
@@ -256,6 +257,7 @@
                 {isEditing ? "Salvar alterações" : "Adicionar produto"}
             </button>
         </form>
+    </div>
     {/if}
 </div>
 
@@ -292,23 +294,21 @@
         display: flex;
         flex-direction: column;
         min-height: 100vh;
-        gap: 24px;
-        padding: 0 24px; /* Mantém o padding apenas nas laterais para o conteúdo */
+        justify-content: center;
         width: 100%;
-        max-width: 1000px;
         margin: 0 auto;
     }
 
     .headerContainer {
-        margin-bottom: 10px;
+        margin-bottom: 3%;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        width: 100vw; /* Alarga o header para a largura completa da viewport */
+        width: 100%; /* Alarga o header para a largura completa da viewport */
         margin-left: calc(
             -50vw + 50%
-        ); /* Compensa o margin do body para alinhar corretamente */
-        padding: 10px 24px; /* Adiciona o padding lateral, se necessário */
+        );/* Compensa o margin do body para alinhar corretamente */
+        padding: 0px 24px; /* Adiciona o padding lateral, se necessário */
         box-sizing: border-box; /* Garante que o padding não afete a largura total */
         background-color: #000425;
     }
@@ -334,9 +334,9 @@
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 20px;
-        width: 100%;
+        width: 80%;
         height: 100%;
-        margin: 20px;
+        margin: 0 auto;
     }
 
     .pagination{
@@ -349,10 +349,15 @@
         object-fit: cover;
         border-radius: 4px;
         margin-bottom: 0 auto;
-        margin-left: 20%;
+        margin: 5% 35%;
+    }
+    .product h2{
+        height: 80px;
+        margin-bottom: 10px;
+        overflow: hidden;
     }
     .product {
-        max-width: 80%;
+        max-width: 100%;
         height: 90%;
         display: flex;
         flex-direction: column;
@@ -362,6 +367,9 @@
         padding: 20px; /* Adiciona padding interno ao redor do conteúdo */
     }
     .product p {
+        width: 100%;
+        overflow: hidden;
+        height: 32%;
         font-family: "Raleway";
     }
     .economics {
@@ -393,6 +401,17 @@
         font-size: 1.1rem;
         padding-right: 10px;
     }
+    .edit{
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .edit h2{
+        margin-bottom: 34px;
+    }
 
     form {
         display: flex;
@@ -401,7 +420,6 @@
         gap: 24px;
         width: 100%;
         max-width: 1000px;
-        margin: 0 auto;
     }
 
     input {
@@ -428,9 +446,9 @@
 
     .pop-up-quantity {
         display: flex;
+        position: fixed;
         justify-content: center;
         align-items: center;
-        position: absolute;
         top: 0;
         width: 100%;
         height: 100vh;
@@ -439,6 +457,7 @@
     .pop-up {
         display: flex;
         flex-direction: column;
+        position: fixed;
         justify-content: space-evenly;
         align-items: center;
         background-color: #000846;
@@ -448,7 +467,6 @@
         height: 70%;
         padding: 20px;
     }
-
     img {
         max-width: 100px;
         max-height: 100px;

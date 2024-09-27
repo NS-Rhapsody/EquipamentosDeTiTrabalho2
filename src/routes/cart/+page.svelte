@@ -72,7 +72,7 @@
         {/if}
         {#each cartList as item, index}
             <div class="todo">
-                <p>{item.nome}, {item.descricao}, R$ {item.preco}, Quantidade: {item.quantidade}</p>
+                <p>{item.nome}, {item.descricao}, R$ {item.preco}, <strong>Quantidade: {item.quantidade}</strong></p>
                 <button on:click={() => removeCart(item)}>Remover do carrinho</button>
             </div>
         {/each}
@@ -134,10 +134,15 @@
     }
 
     .todo {
-        border-left: 1px solid cyan;
+        border-left: 7px solid cyan;
         padding: 4px 8px;
         display: flex;
         align-items: center;
         justify-content: space-between;
+        margin-bottom: 10px;
+    }
+
+    .todo p{
+        max-width: 70%;
     }
 </style>

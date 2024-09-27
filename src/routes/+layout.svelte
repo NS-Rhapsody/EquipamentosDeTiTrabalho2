@@ -63,6 +63,7 @@
 <style>
     .mainContainer {
         min-height: 100vh;
+        min-width: 100vw;
         background: linear-gradient(to right, #000428, #000846);
         color: white;
         position: relative;

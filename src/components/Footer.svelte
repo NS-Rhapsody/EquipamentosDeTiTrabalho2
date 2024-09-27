@@ -10,9 +10,8 @@
             >Smoljames</a
         >
     </p>
-
     <p>Lojas parceiras: <img src="logoIvanLoja.svg" alt="" /></p>
-    <p>powered by:<img src="Telezap2000Group w.png" /></p>
+    <p>powered by:<img src="Telezap2000Group w.png" alt=""/></p>
 </footer>
 
 <style>
@@ -32,9 +31,11 @@
         background-color: #ffffff;
     }
     footer img {
-        align-content: center;
         width: 30px;
-        margin-top: 10px;
+    }
+    footer p{
+        display: flex;
+        justify-content: center;
     }
     footer a {
         color: rgba(0, 5, 45, 255);
